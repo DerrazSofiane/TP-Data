@@ -1,0 +1,213 @@
+<!-- Importé JQuery qui est utilisé par Datatables -->
+<script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-1.12.4.js"></script>
+
+<!-- Importer le module Datatables -->
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+
+<!-- Importer les extensions du module Datatables -->
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.5.1/js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/select/1.2.5/js/dataTables.select.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://editor.datatables.net/extensions/Editor/js/dataTables.editor.min.js"></script>
+
+<!-- Impoter les feuiles de style -->
+<Link rel = "StyleSheet" href = "https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css" type = "text/css" /> 
+
+
+
+
+<div style="width:600px;">
+    <table id="ID_DT_Tvs" class="table hover" style="width:100%" >
+        <thead>
+            <tr>
+                <th>id</th>
+            </tr>
+        </thead> 
+    </table>  
+</div>
+
+
+<div>
+    <label for = "input_id">identifiant de la télé</label>
+    <input type="text" name="id" id = "input_id"/>
+
+    <label for = "input_id">prix de la télé</label>
+    <input type="number" name="price" id = "input_price" min = "0" max = "100000"/>
+
+    <input type="button" value="valider" style="display:none;" id = "button_new" onclick="on_click_new();"/>
+    <input type="button" value="valider" style="display:none;" id = "button_update" onclick="on_click_update();"/>
+</div>
+
+<script>
+
+// Création de la variable table
+table = {}
+
+function on_click_update()
+{
+    console.log("update clicked");
+
+    tv_id = document.getElementById("input_id").value;
+    tv_price = document.getElementById("input_price").value;
+
+    tv = {"id" : tv_id, "price" : tv_price};
+
+    console.log(tv);
+
+    $.ajax
+    ({
+        type: "PUT",
+        url: "http://localhost:5500/tv/" + tv["id"] +"?price=" + tv["price"],
+        data: tv,
+        crossDomain: true,
+        dataType: 'json',
+        success: function(msg)
+        {
+            alert("Réponse reçue en cas de succès de la requête update: " + msg);
+
+            // En cas de succès de suppression dans la base de données, il faut supprimer de la datatable aussi
+            //row = table.rows({selected : true})[0];
+
+            //console.log(row);
+
+            table.rows({selected : true}).data([tv["id"], tv["price"]]).draw();
+        },
+        // Il faut attendre 3 à 4 secondes la réponse en cas d'erreur
+        error : function(XMLHttpRequest, textStatus, errorThrown)
+        {
+            alert("Réponse reçue en cas d'echec update " + textStatus + " " + errorThrown);
+
+            // En cas d'echec on ne doit pas supprimer, normalement le code suivant ne doit pas être là
+            // C'est juste pour voir les lignes supprimées de la datatable
+            table
+            table.rows({selected : true})
+            .remove()
+            .draw();
+        }
+    });   
+}
+
+$(document).ready
+(
+    function() 
+    {
+        // En créant une Datatable par défaut vous avez la fonction 
+        // de sélection top N élements, 
+        // le filtre global sur toutes les colonnes
+        // le tri pour chaque colonne (petite flêche à droite de l'entête de chaque colonne)
+        // La pagination pour ne pas afficher en une fois tous les enregistrements de votre table SQL 
+
+        // Cette ligne crée la datatables avec les paramètres qui seront définis à l'intérieur
+        table = 
+        $('#ID_DT_Tvs').DataTable
+        ( 
+            {
+                "processing": true,
+                "ServerSide": true,
+                
+                "ajax": 
+                {
+                    // Indiquer l'url dans l'app flask qui renvoit l'objet avec la clé "data"
+                    url : "/dt_tvs",
+                },
+                "columns": 
+                [
+                    {data: "id"},
+                    {data: "price"},
+                ],
+                select: true,
+
+                dom: 'Bfrtip', // paramètre important pour visualiser les boutons
+                buttons: 
+                [
+                    {
+                        text: 'Update',
+                        action: function (e, dt, node, config ) 
+                        {
+                            // Récupérer les lignes sélectionnées
+                            rows = table.rows({selected : true}).data();
+                            
+                            // Afficher dans la console (sur le navigateur il faut clicker sur F12 pour voir la console)
+                            console.log(rows);
+
+                            if(rows.length == 1)
+                            {
+                                row = rows[0];
+
+                                console.log(row);
+
+                                tv = {"id" : row.id, "price" : row.price};
+
+                                // Affiche une fenetre si on n'aime pas la console
+                                console.log(tv);
+                                //alert(tv);
+
+                                document.getElementById("input_id").value = row.id;
+                                document.getElementById("input_price").value = row.price;
+
+                                document.getElementById("button_update").style.display = "block";
+                            }
+                        }
+                    }, 
+
+                    {
+                        text: 'Remove',
+                        action: function (e, dt, node, config ) 
+                        {
+                            // Récupérer les lignes sélectionnées
+                            rows = table.rows({selected : true}).data();
+                            
+                            // Afficher dans la console (sur le navigateur il faut clicker sur F12 pour voir la console)
+                            console.log(rows);
+
+                            for(i = 0; i < rows.length; i++)
+                            {
+                                row = rows[i];
+
+                                console.log(row);
+
+                                tv = {"id" : row.id, "price" : row.price};
+
+                                // Affiche une fenetre si on n'aime pas la console
+                                console.log(tv);
+                                //alert(tv);
+
+                                // Envoyer une requete à l'API (il faut démarrer le server qui gère l'api des TVs sur le port 5500 par exemple)
+                                $.ajax
+                                ({
+                                    type: "DELETE",
+                                    url: "http://localhost:5500/tv/" + tv["id"],
+                                    data: tv,
+                                    crossDomain: true,
+                                    dataType: 'json',
+                                    success: function(msg)
+                                    {
+                                        alert("Réponse reçue en cas de succès de la requête delete: " + msg);
+
+                                        // En cas de succès de suppression dans la base de données, il faut supprimer de la datatable aussi
+                                        
+                                        table.rows({selected : true})
+                                        .remove()
+                                        .draw();
+                                    },
+                                    // Il faut attendre 3 à 4 secondes la réponse en cas d'erreur
+                                    error : function(XMLHttpRequest, textStatus, errorThrown)
+                                    {
+                                        alert("Réponse reçue en cas d'echec " + textStatus + " " + errorThrown);
+
+                                        // En cas d'echec on ne doit pas supprimer, normalement le code suivant ne doit pas être là
+                                        // C'est juste pour voir les lignes supprimées de la datatable
+                                        table
+                                        table.rows({selected : true})
+                                        .remove()
+                                        .draw();
+                                    }
+                                });
+                            }
+                        }
+                    }
+                ]
+            }
+        );
+    }
+);
+</script>

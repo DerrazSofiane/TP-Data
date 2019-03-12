@@ -1,0 +1,56 @@
+<!-- Importé JQuery qui est utilisé par Datatables -->
+<script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-1.12.4.js"></script>
+
+<!-- Importer le module Datatables -->
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+
+<!-- Importer les extensions du module Datatables -->
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/1.5.1/js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/select/1.2.5/js/dataTables.select.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://editor.datatables.net/extensions/Editor/js/dataTables.editor.min.js"></script>
+
+<!-- Impoter les feuiles de style -->
+<Link rel = "StyleSheet" href = "https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css" type = "text/css" /> 
+
+<div style="width:600px;">
+    <table id="ID_DT_Tvs" class="table hover" style="width:100%" >
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>price</th>                                
+            </tr>
+        </thead> 
+    </table>  
+</div>
+
+<script>
+$(document).ready
+(
+    function() 
+    {
+        // En créant une Datatable par défaut vous avez la fonction 
+        // de sélection top N élements, 
+        // le filtre global sur toutes les colonnes
+        // le tri pour chaque colonne (petite flêche à droite de l'entête de chaque colonne)
+        // La pagination pour ne pas afficher en une fois tous les enregistrements de votre table SQL 
+
+        // Cette ligne crée la datatables avec les paramètres qui seront définis à l'intérieur
+        $('#ID_DT_Tvs').DataTable
+        ( 
+            {
+                "processing": true,
+                "ajax": 
+                {
+                    // Indiquer l'url dans l'app flask qui renvoit l'objet avec la clé "data"
+                    url : "/dt_tvs",
+                },
+                "columns": 
+                [
+                    {data: "id"},
+                    {data: "price"},
+                ]
+            }
+        );
+    }
+);
+</script>
